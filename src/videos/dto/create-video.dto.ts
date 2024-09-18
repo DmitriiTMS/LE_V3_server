@@ -1,12 +1,12 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmpty, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateVideoDto {
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Поле «Название видео» обязательно для заполнения' })
   title: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Поле «Описание видео» обязательно для заполнения' })
   description: string;
 
   @IsOptional()

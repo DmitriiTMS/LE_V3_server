@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { PrismaService } from 'prisma/prisma.service';
@@ -15,15 +15,15 @@ export class VideosService {
     });
 
     if (videoFind)
-      return {
+      throw new ConflictException({
         message: `Видео с названием '${createVideoDto.title}' уже создано`,
-      };
+      });
 
     const video = await this.prisma.video.create({
       data: {
         title: createVideoDto.title,
         description: createVideoDto.description,
-        url: createVideoDto.url,
+        url: createVideoDto.url ? createVideoDto.url : '',
       },
     });
 
