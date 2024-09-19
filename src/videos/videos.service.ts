@@ -7,7 +7,7 @@ import { PrismaService } from 'prisma/prisma.service';
 export class VideosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createVideoDto: CreateVideoDto) {
+  async create(createVideoDto: CreateVideoDto, pathFile: string) {
     const videoFind = await this.prisma.video.findFirst({
       where: {
         title: createVideoDto.title,
@@ -23,7 +23,7 @@ export class VideosService {
       data: {
         title: createVideoDto.title,
         description: createVideoDto.description,
-        url: createVideoDto.url ? createVideoDto.url : '',
+        url: pathFile ? pathFile : '',
       },
     });
 
