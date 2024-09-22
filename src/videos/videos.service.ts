@@ -1,7 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import * as fs from 'fs';
+import { path } from 'app-root-path';
+
+
+
+console.log(path);
 
 @Injectable()
 export class VideosService {
@@ -52,7 +62,27 @@ export class VideosService {
     return `This action updates a #${id} video`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} video`;
+  async remove(id: string) {
+    const video = await this.prisma.video.findUnique({
+      where: { id },
+    });
+
+    if (!video)
+      throw new BadRequestException({ message: `Видео с ${id} отсутсвует` });
+
+    const videoName = video.url.split('/').at(-1);
+    fs.unlink(`${path}/uploads/videos/${videoName}`, (err) => {
+      if (err) {
+        console.log(err);
+        throw new BadRequestException('Не удалось удалить видео из проекта');
+      }
+    });
+
+    return await this.prisma.video.delete({
+      where: { id },
+      select: {
+        title: true,
+      },
+    });
   }
 }
