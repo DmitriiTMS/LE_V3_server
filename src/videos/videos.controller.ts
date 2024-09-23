@@ -9,7 +9,6 @@ import {
   UsePipes,
   ValidationPipe,
   UseInterceptors,
-  Req,
   UploadedFile,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
@@ -44,8 +43,20 @@ export class VideosController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVideoDto: UpdateVideoDto) {
-    return this.videosService.update(+id, updateVideoDto);
+  @UsePipes(new ValidationPipe())
+  @UseInterceptors(FileInterceptor('url', { storage: storageConfig('videos') }))
+  update(
+    @Param('id') id: string,
+    @Body() updateVideoDto: UpdateVideoDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    let pathFile: string;
+
+    if (typeof file !== 'undefined') {
+      pathFile = file.destination + '/' + file.filename;
+    }
+
+    return this.videosService.update(id, updateVideoDto, pathFile);
   }
 
   @Delete(':id')

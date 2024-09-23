@@ -9,10 +9,6 @@ import { PrismaService } from 'prisma/prisma.service';
 import * as fs from 'fs';
 import { path } from 'app-root-path';
 
-
-
-console.log(path);
-
 @Injectable()
 export class VideosService {
   constructor(private readonly prisma: PrismaService) {}
@@ -58,8 +54,33 @@ export class VideosService {
     return `This action returns a #${id} video`;
   }
 
-  update(id: number, updateVideoDto: UpdateVideoDto) {
-    return `This action updates a #${id} video`;
+  async update(id: string, updateVideoDto: UpdateVideoDto, pathFile: string) {
+    const video = await this.prisma.video.findUnique({
+      where: { id },
+    });
+
+    if (!video)
+      throw new BadRequestException({ message: `Видео с ${id} отсутсвует` });
+
+    const videoName = video.url.split('/').at(-1);
+    const pathVideoName = `${path}/uploads/videos/${videoName}`;
+    if (pathVideoName) {
+      fs.unlink(`${path}/uploads/videos/${videoName}`, (err) => {
+        if (err) {
+          console.log(err);
+          throw new BadRequestException('Не удалось обновить видео в проекте');
+        }
+      });
+    } 
+
+    return await this.prisma.video.update({
+      where: { id },
+      data: {
+        title: updateVideoDto.title,
+        description: updateVideoDto.description,
+        url: pathFile ? pathFile : updateVideoDto.url,
+      },
+    });
   }
 
   async remove(id: string) {
@@ -71,12 +92,16 @@ export class VideosService {
       throw new BadRequestException({ message: `Видео с ${id} отсутсвует` });
 
     const videoName = video.url.split('/').at(-1);
-    fs.unlink(`${path}/uploads/videos/${videoName}`, (err) => {
-      if (err) {
-        console.log(err);
-        throw new BadRequestException('Не удалось удалить видео из проекта');
-      }
-    });
+
+    const pathVideoName = `${path}/uploads/videos/${videoName}`;
+    if (pathVideoName) {
+      fs.unlink(`${path}/uploads/videos/${videoName}`, (err) => {
+        if (err) {
+          console.log(err);
+          throw new BadRequestException('Не удалось удалить видео из проекта');
+        }
+      });
+    }
 
     return await this.prisma.video.delete({
       where: { id },
