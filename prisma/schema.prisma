@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  name          String
+  email         String  @unique
+  password      String
+  instagramName String  @map("instagram_name")
+  isHasPremium  Boolean @default(false) @map("is_has_premium")
+
+  role UserRole @default(USER)
+
+  @@map("users")
+}
+
 model Video {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now()) @map("created_at")
@@ -17,4 +33,9 @@ model Video {
   url         String
 
   @@map("videos")
+}
+
+enum UserRole {
+  ADMIN
+  USER
 }
