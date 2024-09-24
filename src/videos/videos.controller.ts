@@ -16,12 +16,22 @@ import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { storageConfig } from 'helpers/config';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('videos')
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
+  @Get()
+  @Auth()
+  findAll() {
+    return this.videosService.findAll();
+  }
+
+  // ADMIN
+
   @Post()
+  @Auth('admin')
   @UsePipes(new ValidationPipe())
   @UseInterceptors(FileInterceptor('url', { storage: storageConfig('videos') }))
   create(
@@ -32,17 +42,14 @@ export class VideosController {
     return this.videosService.create(createVideoDto, pathFile);
   }
 
-  @Get()
-  findAll() {
-    return this.videosService.findAll();
-  }
-
   @Get(':id')
+  @Auth('admin')
   findOne(@Param('id') id: string) {
     return this.videosService.findOne(+id);
   }
 
   @Patch(':id')
+  @Auth('admin')
   @UsePipes(new ValidationPipe())
   @UseInterceptors(FileInterceptor('url', { storage: storageConfig('videos') }))
   update(
@@ -60,6 +67,7 @@ export class VideosController {
   }
 
   @Delete(':id')
+  @Auth('admin')
   remove(@Param('id') id: string) {
     return this.videosService.remove(id);
   }
